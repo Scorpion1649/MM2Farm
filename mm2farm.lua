@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 -- === Character References ===
@@ -113,7 +114,7 @@ statusLabel.BackgroundTransparency = 1
 statusLabel.TextColor3 = Color3.fromRGB(180,180,180)
 statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-statusLabel.Text = "Status: Ready — toggle AutoFarm"
+statusLabel.Text = "Status: Ready"
 
 -- === Open/Close Button ===
 local toggleBtn = Instance.new("TextButton")
@@ -123,7 +124,7 @@ toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 toggleBtn.TextColor3 = Color3.fromRGB(0, 200, 255)
 toggleBtn.Text = "Open AutoFarm"
 toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.TextSize = 14 -- smaller text
+toggleBtn.TextSize = 16
 toggleBtn.Active = true
 toggleBtn.Draggable = true
 toggleBtn.Parent = screenGui
@@ -162,11 +163,11 @@ local function getCoins()
     return coins
 end
 
--- === Fly Movement (slightly higher now) ===
+-- === Fly Movement (slightly lower) ===
 local function flyToPart(part)
     if not part or not hrp then return end
     local goal = {}
-    goal.CFrame = part.CFrame * CFrame.new(0, -2.5, 0) -- slightly higher
+    goal.CFrame = part.CFrame * CFrame.new(0, -4.5, 0) -- lower under coin
     local tweenInfo = TweenInfo.new(flySpeed, Enum.EasingStyle.Linear)
     local tween = TweenService:Create(hrp, tweenInfo, goal)
     tween:Play()
@@ -176,9 +177,10 @@ end
 -- === Noclip ===
 local noclipConn
 local function enableNoclip()
-    noclipConn = game:GetService("RunService").Stepped:Connect(function()
-        if hrp and character then
-            for _, v in pairs(character:GetDescendants()) do
+    if noclipConn then return end
+    noclipConn = RunService.Stepped:Connect(function()
+        if character then
+            for _, v in ipairs(character:GetDescendants()) do
                 if v:IsA("BasePart") then
                     v.CanCollide = false
                 end
@@ -187,7 +189,10 @@ local function enableNoclip()
     end)
 end
 local function disableNoclip()
-    if noclipConn then noclipConn:Disconnect() end
+    if noclipConn then
+        noclipConn:Disconnect()
+        noclipConn = nil
+    end
 end
 
 -- === AutoFarm ===
@@ -267,3 +272,5 @@ LocalPlayer.CharacterAdded:Connect(function(char)
     character = char
     hrp = character:WaitForChild("HumanoidRootPart")
 end)
+
+statusLabel.Text = "Status: Ready — toggle AutoFarm"
