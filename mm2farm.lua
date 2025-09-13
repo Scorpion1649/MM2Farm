@@ -1,5 +1,3 @@
--- MM2 Auto Farm Script (Fly + Speed Slider + Open/Close Button)
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
@@ -27,80 +25,109 @@ screenGui.Parent = parentGui
 
 -- === Main Frame ===
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 280, 0, 160)
-frame.Position = UDim2.new(0.5, -140, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.Size = UDim2.new(0, 300, 0, 180)
+frame.Position = UDim2.new(0.5, -150, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 28)
-title.BackgroundTransparency = 1
-title.Text = "MM2 AutoFarm"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 18
+-- Round corners
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
+-- Gradient background
+local gradient = Instance.new("UIGradient", frame)
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30,30,30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(50,50,50))
+}
+gradient.Rotation = 90
+
+-- Neon border effect
+local stroke = Instance.new("UIStroke", frame)
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(0, 200, 255)
+stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+-- === Title ===
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "⚡ MM2 AutoFarm ⚡"
+title.TextColor3 = Color3.fromRGB(0, 200, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+
+-- === Buttons ===
 local autoBtn = Instance.new("TextButton", frame)
 autoBtn.Text = "AutoFarm: OFF"
-autoBtn.Size = UDim2.new(0, 120, 0, 36)
-autoBtn.Position = UDim2.new(0, 12, 0, 40)
-autoBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+autoBtn.Size = UDim2.new(0, 130, 0, 38)
+autoBtn.Position = UDim2.new(0, 14, 0, 45)
+autoBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 autoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoBtn.Font = Enum.Font.GothamBold
+autoBtn.TextSize = 16
+Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 8)
 
 local afkBtn = Instance.new("TextButton", frame)
 afkBtn.Text = "Anti-AFK: OFF"
-afkBtn.Size = UDim2.new(0, 120, 0, 36)
-afkBtn.Position = UDim2.new(0, 148, 0, 40)
-afkBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+afkBtn.Size = UDim2.new(0, 130, 0, 38)
+afkBtn.Position = UDim2.new(0, 156, 0, 45)
+afkBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 afkBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+afkBtn.Font = Enum.Font.GothamBold
+afkBtn.TextSize = 16
+Instance.new("UICorner", afkBtn).CornerRadius = UDim.new(0, 8)
 
+-- === Slider ===
 local sliderLabel = Instance.new("TextLabel", frame)
-sliderLabel.Size = UDim2.new(0, 240, 0, 20)
-sliderLabel.Position = UDim2.new(0, 20, 0, 86)
+sliderLabel.Size = UDim2.new(0, 260, 0, 20)
+sliderLabel.Position = UDim2.new(0, 20, 0, 92)
 sliderLabel.BackgroundTransparency = 1
 sliderLabel.Text = "Fly Speed: 0.3s"
-sliderLabel.TextColor3 = Color3.fromRGB(200,200,200)
-sliderLabel.Font = Enum.Font.SourceSans
+sliderLabel.TextColor3 = Color3.fromRGB(180,180,180)
+sliderLabel.Font = Enum.Font.Gotham
 sliderLabel.TextSize = 14
 
--- Speed slider background
 local sliderFrame = Instance.new("Frame", frame)
-sliderFrame.Size = UDim2.new(0, 240, 0, 6)
-sliderFrame.Position = UDim2.new(0, 20, 0, 110)
-sliderFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+sliderFrame.Size = UDim2.new(0, 260, 0, 6)
+sliderFrame.Position = UDim2.new(0, 20, 0, 115)
+sliderFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+Instance.new("UICorner", sliderFrame).CornerRadius = UDim.new(1, 0)
 
--- Slider knob
 local knob = Instance.new("Frame", sliderFrame)
-knob.Size = UDim2.new(0, 10, 0, 16)
-knob.Position = UDim2.new(0, 0, -0.5, 0)
-knob.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+knob.Size = UDim2.new(0, 12, 0, 18)
+knob.Position = UDim2.new(0, 0, -0.6, 0)
+knob.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
 knob.BorderSizePixel = 0
 knob.Active = true
 knob.Draggable = true
+Instance.new("UICorner", knob).CornerRadius = UDim.new(0, 6)
 
+-- === Status Label ===
 local statusLabel = Instance.new("TextLabel", frame)
 statusLabel.Size = UDim2.new(1, -12, 0, 18)
-statusLabel.Position = UDim2.new(0, 6, 1, -26)
+statusLabel.Position = UDim2.new(0, 8, 1, -28)
 statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(200,200,200)
+statusLabel.TextColor3 = Color3.fromRGB(180,180,180)
+statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-statusLabel.Text = "Status: Ready"
+statusLabel.Text = "Status: Ready — toggle AutoFarm"
 
 -- === Open/Close Button ===
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 120, 0, 40)
 toggleBtn.Position = UDim2.new(0.5, -60, 0.05, 0)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleBtn.TextColor3 = Color3.fromRGB(0, 200, 255)
 toggleBtn.Text = "Open AutoFarm"
-toggleBtn.Font = Enum.Font.SourceSansBold
-toggleBtn.TextSize = 16
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 14 -- smaller text
 toggleBtn.Active = true
 toggleBtn.Draggable = true
 toggleBtn.Parent = screenGui
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 10)
 
 frame.Visible = false
 toggleBtn.MouseButton1Click:Connect(function()
@@ -109,7 +136,7 @@ toggleBtn.MouseButton1Click:Connect(function()
 end)
 
 -- === Fly Speed Value ===
-local flySpeed = 0.3 -- default tween time
+local flySpeed = 0.3
 local minSpeed, maxSpeed = 0.1, 1.5
 
 local function updateSpeedFromKnob()
@@ -135,21 +162,39 @@ local function getCoins()
     return coins
 end
 
--- === Fly Movement ===
+-- === Fly Movement (slightly higher now) ===
 local function flyToPart(part)
     if not part or not hrp then return end
     local goal = {}
-    goal.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+    goal.CFrame = part.CFrame * CFrame.new(0, -2.5, 0) -- slightly higher
     local tweenInfo = TweenInfo.new(flySpeed, Enum.EasingStyle.Linear)
     local tween = TweenService:Create(hrp, tweenInfo, goal)
     tween:Play()
     tween.Completed:Wait()
 end
 
+-- === Noclip ===
+local noclipConn
+local function enableNoclip()
+    noclipConn = game:GetService("RunService").Stepped:Connect(function()
+        if hrp and character then
+            for _, v in pairs(character:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+local function disableNoclip()
+    if noclipConn then noclipConn:Disconnect() end
+end
+
 -- === AutoFarm ===
 local farming = false
 local function startFarm()
     farming = true
+    enableNoclip()
     task.spawn(function()
         while farming do
             local coins = getCoins()
@@ -171,7 +216,10 @@ local function startFarm()
         end
     end)
 end
-local function stopFarm() farming = false end
+local function stopFarm()
+    farming = false
+    disableNoclip()
+end
 
 -- === Anti-AFK ===
 local AntiAFK = false
@@ -219,5 +267,3 @@ LocalPlayer.CharacterAdded:Connect(function(char)
     character = char
     hrp = character:WaitForChild("HumanoidRootPart")
 end)
-
-statusLabel.Text = "Status: Ready — toggle AutoFarm"
