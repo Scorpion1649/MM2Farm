@@ -163,11 +163,11 @@ local function getCoins()
     return coins
 end
 
--- === Fly Movement (slightly lower) ===
+-- === Fly Movement (head right under coin, 0.5 studs higher than before) ===
 local function flyToPart(part)
     if not part or not hrp then return end
     local goal = {}
-    goal.CFrame = part.CFrame * CFrame.new(0, -4.5, 0) -- lower under coin
+    goal.CFrame = part.CFrame * CFrame.new(0, -4.0, 0) -- head sits right under coin
     local tweenInfo = TweenInfo.new(flySpeed, Enum.EasingStyle.Linear)
     local tween = TweenService:Create(hrp, tweenInfo, goal)
     tween:Play()
