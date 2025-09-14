@@ -1,19 +1,24 @@
+--// Services
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+local VirtualUser = game:GetService("VirtualUser")
 
 -- === Character References ===
 local function getChar()
     local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
-    return char, hrp
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    return char, hrp, humanoid
 end
-local character, hrp = getChar()
+local character, hrp, humanoid = getChar()
 
 -- === GUI Parent ===
 local parentGui
-pcall(function() parentGui = game:GetService("CoreGui") end)
+pcall(function()
+    parentGui = game:GetService("CoreGui")
+end)
 if not parentGui then
     parentGui = LocalPlayer:WaitForChild("PlayerGui")
 end
@@ -129,7 +134,6 @@ toggleBtn.Active = true
 toggleBtn.Draggable = true
 toggleBtn.Parent = screenGui
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 10)
-
 frame.Visible = false
 toggleBtn.MouseButton1Click:Connect(function()
     frame.Visible = not frame.Visible
@@ -139,17 +143,13 @@ end)
 -- === Fly Speed Value ===
 local flySpeed = 0.3
 local minSpeed, maxSpeed = 0.1, 1.5
-
 local function updateSpeedFromKnob()
     local percent = math.clamp(knob.Position.X.Offset / (sliderFrame.AbsoluteSize.X - knob.AbsoluteSize.X), 0, 1)
     flySpeed = minSpeed + (maxSpeed - minSpeed) * percent
     sliderLabel.Text = string.format("Fly Speed: %.2fs", flySpeed)
 end
-
 knob.Changed:Connect(function(prop)
-    if prop == "Position" then
-        updateSpeedFromKnob()
-    end
+    if prop == "Position" then updateSpeedFromKnob() end
 end)
 
 -- === Coin Finder ===
@@ -163,11 +163,11 @@ local function getCoins()
     return coins
 end
 
--- === Fly Movement (head right under coin, 0.5 studs higher than before) ===
+-- === Fly Movement (head under coin) ===
 local function flyToPart(part)
     if not part or not hrp then return end
     local goal = {}
-    goal.CFrame = part.CFrame * CFrame.new(0, -4.0, 0) -- head sits right under coin
+    goal.CFrame = part.CFrame * CFrame.new(0, -2.5, 0) -- HEAD under coin
     local tweenInfo = TweenInfo.new(flySpeed, Enum.EasingStyle.Linear)
     local tween = TweenService:Create(hrp, tweenInfo, goal)
     tween:Play()
@@ -195,11 +195,30 @@ local function disableNoclip()
     end
 end
 
+-- === Anti-Gravity ===
+local antiGravityConn
+local function enableAntiGravity()
+    if antiGravityConn then return end
+    if humanoid and hrp then
+        humanoid.Jump = true -- force jump once
+        antiGravityConn = RunService.Stepped:Connect(function()
+            hrp.Velocity = Vector3.new(hrp.Velocity.X, 0, hrp.Velocity.Z) -- zero out downward velocity
+        end)
+    end
+end
+local function disableAntiGravity()
+    if antiGravityConn then
+        antiGravityConn:Disconnect()
+        antiGravityConn = nil
+    end
+end
+
 -- === AutoFarm ===
 local farming = false
 local function startFarm()
     farming = true
     enableNoclip()
+    enableAntiGravity()
     task.spawn(function()
         while farming do
             local coins = getCoins()
@@ -224,6 +243,7 @@ end
 local function stopFarm()
     farming = false
     disableNoclip()
+    disableAntiGravity()
 end
 
 -- === Anti-AFK ===
@@ -232,14 +252,15 @@ local afkConn
 local function startAFK()
     AntiAFK = true
     afkConn = LocalPlayer.Idled:Connect(function()
-        local vu = game:GetService("VirtualUser")
-        vu:CaptureController()
-        vu:ClickButton2(Vector2.new())
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
     end)
 end
 local function stopAFK()
     AntiAFK = false
-    if afkConn then afkConn:Disconnect() end
+    if afkConn then
+        afkConn:Disconnect()
+    end
 end
 
 -- === Button Logic ===
@@ -271,6 +292,7 @@ end)
 LocalPlayer.CharacterAdded:Connect(function(char)
     character = char
     hrp = character:WaitForChild("HumanoidRootPart")
+    humanoid = character:FindFirstChildOfClass("Humanoid")
 end)
 
 statusLabel.Text = "Status: Ready — toggle AutoFarm"
