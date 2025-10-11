@@ -56,7 +56,7 @@ stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundTransparency = 1
-title.Text = "⚡ MM2 AutoFarm ⚡"
+title.Text "💰MM2 Summer Autofarm🏖️"
 title.TextColor3 = Color3.fromRGB(0, 200, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
