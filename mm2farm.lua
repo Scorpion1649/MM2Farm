@@ -56,7 +56,7 @@ stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundTransparency = 1
-title.Text "💰MM2 Summer Autofarm🏖️"
+title.Text = "🏖️ MM2 AutoFarm 💰"
 title.TextColor3 = Color3.fromRGB(0, 200, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
@@ -134,17 +134,17 @@ local function getCoins()
     return coins
 end
 
--- === Fly Movement (Head slightly below coin, normal player speed) ===
+-- === Fly Movement (Head slightly below coin, normal speed) ===
 local function flyToPart(part)
     if not part or not hrp or not character then return end
     local head = character:FindFirstChild("Head")
     if not head then return end
 
     local offset = head.Position - hrp.Position
-    local targetPos = part.Position - offset - Vector3.new(0, 0.5, 0) -- slightly below coin
+    local targetPos = part.Position - offset - Vector3.new(0, 0.5, 0)
     local distance = (hrp.Position - targetPos).Magnitude
-    local walkSpeed = 16 -- normal player speed
-    local time = distance / walkSpeed -- duration = distance / speed
+    local walkSpeed = 16
+    local time = distance / walkSpeed
 
     local goal = {CFrame = CFrame.new(targetPos)}
     local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
@@ -194,6 +194,8 @@ end
 
 -- === AutoFarm ===
 local farming = false
+local hasReset = false -- reset only once per match
+
 local function startFarm()
     farming = true
     enableNoclip()
@@ -201,14 +203,22 @@ local function startFarm()
 
     -- Safe start: sink slightly underground
     if hrp then
-        hrp.CFrame = hrp.CFrame + Vector3.new(0, -3, 0) -- sink 3 studs
+        hrp.CFrame = hrp.CFrame + Vector3.new(0, -3, 0)
         task.wait(0.15)
-        hrp.CFrame = hrp.CFrame + Vector3.new(0, 3, 0) -- return to original position
+        hrp.CFrame = hrp.CFrame + Vector3.new(0, 3, 0)
     end
 
     task.spawn(function()
         while farming do
             local coins = getCoins()
+            
+            -- Check if all coins are gone or transparent
+            if #coins == 0 and not hasReset then
+                hasReset = true
+                LocalPlayer:LoadCharacter()
+                break
+            end
+
             if #coins > 0 then
                 local closest = coins[1]
                 local dist = (closest.Position - hrp.Position).Magnitude
@@ -223,6 +233,7 @@ local function startFarm()
             else
                 task.wait(0.3)
             end
+
             task.wait(0.05)
         end
     end)
