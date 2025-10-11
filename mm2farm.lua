@@ -121,36 +121,33 @@ toggleBtn.MouseButton1Click:Connect(function()
     toggleBtn.Text = frame.Visible and "Close AutoFarm" or "Open AutoFarm"
 end)
 
--- === AutoFarm Fly-to-Coin Speed (Slightly Faster but Safe) ===
-local flySpeed = 0.8 -- slightly faster than 1.1
-
 -- === Coin Finder (skip semi-transparent coins) ===
 local function getCoins()
     local coins = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") 
         and obj.Name:lower():find("coin") 
-        and obj.Transparency < 0.1 then -- only mostly visible coins
+        and obj.Transparency < 0.1 then
             table.insert(coins, obj)
         end
     end
     return coins
 end
 
--- === Fly Movement (Head aligned on coin) ===
+-- === Fly Movement (Head slightly below coin, normal player speed) ===
 local function flyToPart(part)
     if not part or not hrp or not character then return end
     local head = character:FindFirstChild("Head")
     if not head then return end
-    
-    -- Offset between HRP and Head
+
     local offset = head.Position - hrp.Position
-    
-    -- Set goal so head is exactly on the coin
-    local goal = {}
-    goal.CFrame = CFrame.new(part.Position - offset)
-    
-    local tweenInfo = TweenInfo.new(flySpeed, Enum.EasingStyle.Linear)
+    local targetPos = part.Position - offset - Vector3.new(0, 0.5, 0) -- slightly below coin
+    local distance = (hrp.Position - targetPos).Magnitude
+    local walkSpeed = 16 -- normal player speed
+    local time = distance / walkSpeed -- duration = distance / speed
+
+    local goal = {CFrame = CFrame.new(targetPos)}
+    local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
     local tween = TweenService:Create(hrp, tweenInfo, goal)
     tween:Play()
     tween.Completed:Wait()
@@ -201,6 +198,14 @@ local function startFarm()
     farming = true
     enableNoclip()
     enableAntiGravity()
+
+    -- Safe start: sink slightly underground
+    if hrp then
+        hrp.CFrame = hrp.CFrame + Vector3.new(0, -3, 0) -- sink 3 studs
+        task.wait(0.15)
+        hrp.CFrame = hrp.CFrame + Vector3.new(0, 3, 0) -- return to original position
+    end
+
     task.spawn(function()
         while farming do
             local coins = getCoins()
