@@ -121,25 +121,25 @@ toggleBtn.MouseButton1Click:Connect(function()
     toggleBtn.Text = frame.Visible and "Close AutoFarm" or "Open AutoFarm"
 end)
 
--- === Coin Finder ===
+-- === Coin Finder (skip coins with Transparency >= 0.01) ===
 local function getCoins()
     local coins = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Name:lower():find("coin") and obj.Transparency < 0.1 then
+        if obj:IsA("BasePart") and obj.Name:lower():find("coin") and obj.Transparency < 0.01 then
             table.insert(coins, obj)
         end
     end
     return coins
 end
 
--- === Fly Movement (normal speed + head slightly below) ===
+-- === Fly Movement (head slightly lower) ===
 local function flyToPart(part)
     if not part or not hrp or not character then return end
     local head = character:FindFirstChild("Head")
     if not head then return end
 
     local offset = head.Position - hrp.Position
-    local targetPos = part.Position - offset - Vector3.new(0, 0.5, 0)
+    local targetPos = part.Position - offset - Vector3.new(0, 1, 0) -- head 1 stud below coin
     local distance = (hrp.Position - targetPos).Magnitude
     local walkSpeed = 16
     local time = distance / walkSpeed
@@ -192,35 +192,41 @@ end
 
 -- === AutoFarm ===
 local farming = false
+local undergroundOffset = -0.1 -- slightly under the floor
+
 local function startFarm()
     farming = true
     enableNoclip()
     enableAntiGravity()
 
-    -- Sink slightly underground before starting
-    if hrp then
-        local originalPos = hrp.Position
-        hrp.CFrame = hrp.CFrame + Vector3.new(0, -3, 0)
-        task.wait(0.15)
-        hrp.CFrame = CFrame.new(originalPos)
-    end
-
     task.spawn(function()
         while farming do
             local coins = getCoins()
-            if #coins > 0 then
-                local closest = coins[1]
-                local dist = (closest.Position - hrp.Position).Magnitude
-                for _, c in ipairs(coins) do
-                    local d = (c.Position - hrp.Position).Magnitude
-                    if d < dist then
-                        closest = c
-                        dist = d
-                    end
+            local closest = nil
+            local dist = math.huge
+
+            -- Find closest visible coin
+            for _, c in ipairs(coins) do
+                local d = (c.Position - hrp.Position).Magnitude
+                if d < dist then
+                    closest = c
+                    dist = d
                 end
+            end
+
+            if closest then
                 flyToPart(closest)
             else
-                task.wait(0.3)
+                -- No coins or all coins invisible: go slightly underground
+                if hrp then
+                    -- Cast a ray downward to detect floor
+                    local ray = Ray.new(hrp.Position, Vector3.new(0, -50, 0))
+                    local part, pos = workspace:FindPartOnRay(ray, character)
+                    if part and pos then
+                        hrp.CFrame = CFrame.new(pos + Vector3.new(0, undergroundOffset, 0))
+                        hrp.Velocity = Vector3.new(0, 0, 0)
+                    end
+                end
             end
             task.wait(0.05)
         end
@@ -328,11 +334,18 @@ espBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Update character reference on respawn
+-- === Auto Resume AutoFarm After Respawn ===
 LocalPlayer.CharacterAdded:Connect(function(char)
     character = char
     hrp = character:WaitForChild("HumanoidRootPart")
     humanoid = character:FindFirstChildOfClass("Humanoid")
+
+    task.wait(1) -- small delay to let the round initialize
+
+    if farming then
+        startFarm()
+        statusLabel.Text = "Status: AutoFarm resumed"
+    end
 end)
 
 statusLabel.Text = "Status: Ready — toggle AutoFarm"
