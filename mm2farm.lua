@@ -7,20 +7,19 @@ local VirtualUser = game:GetService("VirtualUser")
 
 -- === Character References ===
 local function getChar()
-    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    return char, hrp, humanoid
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local hrp = char:WaitForChild("HumanoidRootPart")
+	local humanoid = char:FindFirstChildOfClass("Humanoid")
+	return char, hrp, humanoid
 end
+
 local character, hrp, humanoid = getChar()
 
 -- === GUI Parent ===
 local parentGui
-pcall(function()
-    parentGui = game:GetService("CoreGui")
-end)
+pcall(function() parentGui = game:GetService("CoreGui") end)
 if not parentGui then
-    parentGui = LocalPlayer:WaitForChild("PlayerGui")
+	parentGui = LocalPlayer:WaitForChild("PlayerGui")
 end
 
 -- === ScreenGui ===
@@ -42,8 +41,8 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
 local gradient = Instance.new("UIGradient", frame)
 gradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(30,30,30)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(50,50,50))
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(30,30,30)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(50,50,50))
 }
 gradient.Rotation = 90
 
@@ -117,225 +116,241 @@ toggleBtn.Parent = screenGui
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 10)
 frame.Visible = false
 toggleBtn.MouseButton1Click:Connect(function()
-    frame.Visible = not frame.Visible
-    toggleBtn.Text = frame.Visible and "Close AutoFarm" or "Open AutoFarm"
+	frame.Visible = not frame.Visible
+	toggleBtn.Text = frame.Visible and "Close AutoFarm" or "Open AutoFarm"
 end)
 
 -- === Fly Speed ===
-local flySpeed = 28 -- updated fly speed
+local flySpeed = 28
 
 -- === Coin Finder ===
 local function getCoins()
-    local coins = {}
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Name:lower():find("coin") and obj.Transparency < 0.01 then
-            table.insert(coins, obj)
-        end
-    end
-    return coins
+	local coins = {}
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Name:lower():find("coin") and obj.Transparency < 0.99 then
+			table.insert(coins, obj)
+		end
+	end
+	return coins
 end
 
--- === Fly Movement (head slightly below coin) ===
+-- === Fly Movement ===
 local function flyToPart(part)
-    if not part or not hrp or not character then return end
-    local head = character:FindFirstChild("Head")
-    if not head then return end
+	if not part or not hrp or not character then return end
+	local head = character:FindFirstChild("Head")
+	if not head then return end
 
-    local offset = head.Position - hrp.Position
-    local targetPos = part.Position - offset - Vector3.new(0, 1, 0)
-    local distance = (hrp.Position - targetPos).Magnitude
-    local time = distance / flySpeed
+	local offset = head.Position - hrp.Position
+	local targetPos = part.Position - offset - Vector3.new(0, 1, 0)
+	local distance = (hrp.Position - targetPos).Magnitude
+	local time = distance / flySpeed
 
-    local goal = {CFrame = CFrame.new(targetPos)}
-    local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(hrp, tweenInfo, goal)
-    tween:Play()
-    tween.Completed:Wait()
+	local goal = {CFrame = CFrame.new(targetPos)}
+	local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
+	local tween = TweenService:Create(hrp, tweenInfo, goal)
+	tween:Play()
+	tween.Completed:Wait()
 end
 
 -- === Noclip ===
 local noclipConn
 local function enableNoclip()
-    if noclipConn then return end
-    noclipConn = RunService.Stepped:Connect(function()
-        if character then
-            for _, v in ipairs(character:GetDescendants()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = false
-                end
-            end
-        end
-    end)
+	if noclipConn then return end
+	noclipConn = RunService.Stepped:Connect(function()
+		if character then
+			for _, v in ipairs(character:GetDescendants()) do
+				if v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+		end
+	end)
 end
 local function disableNoclip()
-    if noclipConn then
-        noclipConn:Disconnect()
-        noclipConn = nil
-    end
+	if noclipConn then
+		noclipConn:Disconnect()
+		noclipConn = nil
+	end
 end
 
--- === Anti-Gravity ===
+-- === Anti-Gravity (Persistent) ===
 local antiGravityConn
 local function enableAntiGravity()
-    if antiGravityConn then return end
-    if humanoid and hrp then
-        humanoid.Jump = true
-        antiGravityConn = RunService.Stepped:Connect(function()
-            hrp.Velocity = Vector3.new(hrp.Velocity.X, 0, hrp.Velocity.Z)
-        end)
-    end
+	if antiGravityConn then return end
+	task.wait(0.2)
+	antiGravityConn = RunService.Stepped:Connect(function()
+		if hrp and humanoid and humanoid.Health > 0 then
+			hrp.Velocity = Vector3.new(hrp.Velocity.X, 0, hrp.Velocity.Z)
+			humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+		end
+	end)
 end
 local function disableAntiGravity()
-    if antiGravityConn then
-        antiGravityConn:Disconnect()
-        antiGravityConn = nil
-    end
+	if antiGravityConn then
+		antiGravityConn:Disconnect()
+		antiGravityConn = nil
+	end
 end
 
 -- === AutoFarm ===
 local farming = false
 local function startFarm()
-    farming = true
-    enableNoclip()
-    enableAntiGravity()
+	farming = true
+	enableNoclip()
+	enableAntiGravity()
 
-    task.spawn(function()
-        while farming do
-            local coins = getCoins()
-            if #coins > 0 then
-                local closest = coins[1]
-                local dist = (closest.Position - hrp.Position).Magnitude
-                for _, c in ipairs(coins) do
-                    local d = (c.Position - hrp.Position).Magnitude
-                    if d < dist then
-                        closest = c
-                        dist = d
-                    end
-                end
-                flyToPart(closest)
-            else
-                -- stay slightly underground if no coins
-                if hrp then
-                    hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 0.1, hrp.Position.Z)
-                end
-                task.wait(0.05)
-            end
-            task.wait(0.05)
-        end
-    end)
+	task.spawn(function()
+		while farming and hrp and humanoid do
+			local coins = getCoins()
+			if #coins > 0 then
+				local closest = coins[1]
+				local dist = (closest.Position - hrp.Position).Magnitude
+				for _, c in ipairs(coins) do
+					local d = (c.Position - hrp.Position).Magnitude
+					if d < dist then
+						closest = c
+						dist = d
+					end
+				end
+				flyToPart(closest)
+			else
+				hrp.CFrame = hrp.CFrame * CFrame.new(0, -0.05, 0)
+				task.wait(0.05)
+			end
+			task.wait(0.05)
+		end
+	end)
 end
 
 local function stopFarm()
-    farming = false
-    disableNoclip()
-    disableAntiGravity()
+	farming = false
+	disableNoclip()
+	disableAntiGravity()
 end
 
 -- === Anti-AFK ===
 local AntiAFK = false
 local afkConn
 local function startAFK()
-    AntiAFK = true
-    afkConn = LocalPlayer.Idled:Connect(function()
-        VirtualUser:CaptureController()
-        VirtualUser:ClickButton2(Vector2.new())
-    end)
+	AntiAFK = true
+	afkConn = LocalPlayer.Idled:Connect(function()
+		VirtualUser:CaptureController()
+		VirtualUser:ClickButton2(Vector2.new())
+	end)
 end
 local function stopAFK()
-    AntiAFK = false
-    if afkConn then
-        afkConn:Disconnect()
-    end
+	AntiAFK = false
+	if afkConn then afkConn:Disconnect() end
 end
 
--- === Coin ESP ===
+-- === Coin ESP (Auto-refresh) ===
 local espEnabled = false
 local espConnections = {}
 local hue = 0
+local espLoop
 
 local function createESP(part)
-    local highlight = Instance.new("Highlight")
-    highlight.Adornee = part
-    highlight.FillTransparency = 1
-    highlight.OutlineTransparency = 0
-    highlight.Parent = part
-    table.insert(espConnections, highlight)
+	if part:FindFirstChildOfClass("Highlight") then return end
+	local highlight = Instance.new("Highlight")
+	highlight.Adornee = part
+	highlight.FillTransparency = 1
+	highlight.OutlineTransparency = 0
+	highlight.Parent = part
+	table.insert(espConnections, highlight)
 end
 
 local function enableESP()
-    espEnabled = true
-    for _, part in ipairs(getCoins()) do
-        createESP(part)
-    end
-    task.spawn(function()
-        while espEnabled do
-            hue = (hue + 1) % 360
-            local color = Color3.fromHSV(hue / 360, 1, 1)
-            for _, h in ipairs(espConnections) do
-                if h.Parent then
-                    h.OutlineColor = color
-                end
-            end
-            task.wait(0.05)
-        end
-    end)
+	if espEnabled then return end
+	espEnabled = true
+
+	-- Initial ESP
+	for _, part in ipairs(getCoins()) do
+		createESP(part)
+	end
+
+	-- Auto-refresh new coins
+	espLoop = task.spawn(function()
+		while espEnabled do
+			hue = (hue + 1) % 360
+			local color = Color3.fromHSV(hue / 360, 1, 1)
+
+			-- Update existing ESP color
+			for _, h in ipairs(espConnections) do
+				if h.Parent then
+					h.OutlineColor = color
+				end
+			end
+
+			-- Add ESP to new coins automatically
+			for _, part in ipairs(getCoins()) do
+				if not part:FindFirstChildOfClass("Highlight") then
+					createESP(part)
+				end
+			end
+
+			task.wait(0.2)
+		end
+	end)
 end
 
 local function disableESP()
-    espEnabled = false
-    for _, h in ipairs(espConnections) do
-        h:Destroy()
-    end
-    table.clear(espConnections)
+	espEnabled = false
+	for _, h in ipairs(espConnections) do
+		h:Destroy()
+	end
+	table.clear(espConnections)
 end
 
 -- === Button Logic ===
 autoBtn.MouseButton1Click:Connect(function()
-    if farming then
-        stopFarm()
-        autoBtn.Text = "AutoFarm: OFF"
-        statusLabel.Text = "Status: AutoFarm stopped"
-    else
-        startFarm()
-        autoBtn.Text = "AutoFarm: ON"
-        statusLabel.Text = "Status: AutoFarm running"
-    end
+	if farming then
+		stopFarm()
+		autoBtn.Text = "AutoFarm: OFF"
+		statusLabel.Text = "Status: AutoFarm stopped"
+	else
+		startFarm()
+		autoBtn.Text = "AutoFarm: ON"
+		statusLabel.Text = "Status: AutoFarm running"
+	end
 end)
 
 afkBtn.MouseButton1Click:Connect(function()
-    if AntiAFK then
-        stopAFK()
-        afkBtn.Text = "Anti-AFK: OFF"
-        statusLabel.Text = "Status: Anti-AFK stopped"
-    else
-        startAFK()
-        afkBtn.Text = "Anti-AFK: ON"
-        statusLabel.Text = "Status: Anti-AFK running"
-    end
+	if AntiAFK then
+		stopAFK()
+		afkBtn.Text = "Anti-AFK: OFF"
+		statusLabel.Text = "Status: Anti-AFK stopped"
+	else
+		startAFK()
+		afkBtn.Text = "Anti-AFK: ON"
+		statusLabel.Text = "Status: Anti-AFK running"
+	end
 end)
 
 espBtn.MouseButton1Click:Connect(function()
-    if espEnabled then
-        disableESP()
-        espBtn.Text = "Coin ESP: OFF"
-        statusLabel.Text = "Status: ESP disabled"
-    else
-        enableESP()
-        espBtn.Text = "Coin ESP: ON"
-        statusLabel.Text = "Status: Coin ESP active"
-    end
+	if espEnabled then
+		disableESP()
+		espBtn.Text = "Coin ESP: OFF"
+		statusLabel.Text = "Status: ESP disabled"
+	else
+		enableESP()
+		espBtn.Text = "Coin ESP: ON"
+		statusLabel.Text = "Status: Coin ESP active"
+	end
 end)
 
--- Auto resume AutoFarm after respawn
+-- === Respawn Reconnect Fix ===
 LocalPlayer.CharacterAdded:Connect(function(char)
-    character = char
-    hrp = character:WaitForChild("HumanoidRootPart")
-    humanoid = character:FindFirstChildOfClass("Humanoid")
-    task.wait(1)
-    if farming then
-        startFarm()
-        statusLabel.Text = "Status: AutoFarm resumed"
-    end
+	character = char
+	hrp = char:WaitForChild("HumanoidRootPart")
+	humanoid = char:FindFirstChildOfClass("Humanoid")
+	task.wait(1)
+	if farming then
+		startFarm()
+		statusLabel.Text = "Status: AutoFarm resumed"
+	end
+	if antiGravityConn then
+		enableAntiGravity()
+	end
 end)
 
 statusLabel.Text = "Status: Ready — toggle AutoFarm"
