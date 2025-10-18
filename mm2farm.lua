@@ -1,3 +1,7 @@
+--// 🎃 MM2 Halloween AutoFarm💰
+--// Works on KRNL / Delta (PC + iOS)
+--// By GPT-5
+
 --// Services
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -32,7 +36,7 @@ screenGui.Parent = parentGui
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 300, 0, 160)
 frame.Position = UDim2.new(0.5, -150, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BackgroundColor3 = Color3.fromRGB(25, 20, 15)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
@@ -41,22 +45,22 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
 local gradient = Instance.new("UIGradient", frame)
 gradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(30,30,30)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(50,50,50))
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 25, 15)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 40, 25))
 }
 gradient.Rotation = 90
 
 local stroke = Instance.new("UIStroke", frame)
 stroke.Thickness = 2
-stroke.Color = Color3.fromRGB(0, 200, 255)
+stroke.Color = Color3.fromRGB(255, 120, 0)
 stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 -- === Title ===
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundTransparency = 1
-title.Text = "🏖️MM2 Summer AutoFarm💰"
-title.TextColor3 = Color3.fromRGB(0, 200, 255)
+title.Text = "🎃 MM2 Halloween AutoFarm💰"
+title.TextColor3 = Color3.fromRGB(255, 145, 0)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 
@@ -65,7 +69,7 @@ local autoBtn = Instance.new("TextButton", frame)
 autoBtn.Text = "AutoFarm: OFF"
 autoBtn.Size = UDim2.new(0, 130, 0, 38)
 autoBtn.Position = UDim2.new(0, 14, 0, 45)
-autoBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+autoBtn.BackgroundColor3 = Color3.fromRGB(45, 30, 20)
 autoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 autoBtn.Font = Enum.Font.GothamBold
 autoBtn.TextSize = 16
@@ -75,7 +79,7 @@ local afkBtn = Instance.new("TextButton", frame)
 afkBtn.Text = "Anti-AFK: OFF"
 afkBtn.Size = UDim2.new(0, 130, 0, 38)
 afkBtn.Position = UDim2.new(0, 156, 0, 45)
-afkBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+afkBtn.BackgroundColor3 = Color3.fromRGB(45, 30, 20)
 afkBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 afkBtn.Font = Enum.Font.GothamBold
 afkBtn.TextSize = 16
@@ -85,7 +89,7 @@ local espBtn = Instance.new("TextButton", frame)
 espBtn.Text = "Coin ESP: OFF"
 espBtn.Size = UDim2.new(0, 260, 0, 36)
 espBtn.Position = UDim2.new(0, 20, 0, 90)
-espBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+espBtn.BackgroundColor3 = Color3.fromRGB(45, 30, 20)
 espBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 espBtn.Font = Enum.Font.GothamBold
 espBtn.TextSize = 16
@@ -96,18 +100,18 @@ local statusLabel = Instance.new("TextLabel", frame)
 statusLabel.Size = UDim2.new(1, -12, 0, 18)
 statusLabel.Position = UDim2.new(0, 8, 1, -28)
 statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(180,180,180)
+statusLabel.TextColor3 = Color3.fromRGB(200,140,80)
 statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 statusLabel.Text = "Status: Ready"
 
 -- === Open/Close Button ===
 local toggleBtn = Instance.new("TextButton")
-toggleBtn.Size = UDim2.new(0, 120, 0, 40)
-toggleBtn.Position = UDim2.new(0.5, -60, 0.05, 0)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-toggleBtn.TextColor3 = Color3.fromRGB(0, 200, 255)
-toggleBtn.Text = "Open AutoFarm"
+toggleBtn.Size = UDim2.new(0, 140, 0, 42)
+toggleBtn.Position = UDim2.new(0.5, -70, 0.05, 0)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 15)
+toggleBtn.TextColor3 = Color3.fromRGB(255, 145, 0)
+toggleBtn.Text = "🎃 Open AutoFarm"
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 16
 toggleBtn.Active = true
@@ -117,7 +121,7 @@ Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 10)
 frame.Visible = false
 toggleBtn.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
-	toggleBtn.Text = frame.Visible and "Close AutoFarm" or "Open AutoFarm"
+	toggleBtn.Text = frame.Visible and "🎃 Close AutoFarm" or "🎃 Open AutoFarm"
 end)
 
 -- === Fly Speed ===
@@ -263,31 +267,24 @@ local function enableESP()
 	if espEnabled then return end
 	espEnabled = true
 
-	-- Initial ESP
 	for _, part in ipairs(getCoins()) do
 		createESP(part)
 	end
 
-	-- Auto-refresh new coins
 	espLoop = task.spawn(function()
 		while espEnabled do
 			hue = (hue + 1) % 360
 			local color = Color3.fromHSV(hue / 360, 1, 1)
-
-			-- Update existing ESP color
 			for _, h in ipairs(espConnections) do
 				if h.Parent then
 					h.OutlineColor = color
 				end
 			end
-
-			-- Add ESP to new coins automatically
 			for _, part in ipairs(getCoins()) do
 				if not part:FindFirstChildOfClass("Highlight") then
 					createESP(part)
 				end
 			end
-
 			task.wait(0.2)
 		end
 	end)
