@@ -1,6 +1,5 @@
 --// 🎃 MM2 Halloween AutoFarm💰
 --// Works on KRNL / Delta (PC + iOS)
---// By GPT-5
 
 --// Services
 local Players = game:GetService("Players")
