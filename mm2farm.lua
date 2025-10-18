@@ -131,7 +131,7 @@ local flySpeed = 28
 local function getCoins()
 	local coins = {}
 	for _, obj in ipairs(workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and obj.Name:lower():find("coin") and obj.Transparency < 0.99 then
+		if obj:IsA("BasePart") and obj.Name:lower():find("coin") then
 			table.insert(coins, obj)
 		end
 	end
@@ -177,11 +177,10 @@ local function disableNoclip()
 	end
 end
 
--- === Anti-Gravity (Persistent) ===
+-- === Anti-Gravity ===
 local antiGravityConn
 local function enableAntiGravity()
 	if antiGravityConn then return end
-	task.wait(0.2)
 	antiGravityConn = RunService.Stepped:Connect(function()
 		if hrp and humanoid and humanoid.Health > 0 then
 			hrp.Velocity = Vector3.new(hrp.Velocity.X, 0, hrp.Velocity.Z)
@@ -201,24 +200,46 @@ local farming = false
 local function startFarm()
 	farming = true
 	enableNoclip()
-	enableAntiGravity()
 
 	task.spawn(function()
 		while farming and hrp and humanoid do
 			local coins = getCoins()
+
+			-- Check coin transparency for Anti-Gravity toggle
+			local hasVisibleCoin = false
+			for _, c in ipairs(coins) do
+				if c.Transparency == 0 then
+					hasVisibleCoin = true
+					break
+				end
+			end
+
+			if hasVisibleCoin then
+				enableAntiGravity()
+			else
+				disableAntiGravity()
+			end
+
 			if #coins > 0 then
-				local closest = coins[1]
-				local dist = (closest.Position - hrp.Position).Magnitude
+				local visibleCoins = {}
 				for _, c in ipairs(coins) do
-					local d = (c.Position - hrp.Position).Magnitude
-					if d < dist then
-						closest = c
-						dist = d
+					if c.Transparency == 0 then
+						table.insert(visibleCoins, c)
 					end
 				end
-				flyToPart(closest)
+				if #visibleCoins > 0 then
+					local closest = visibleCoins[1]
+					local dist = (closest.Position - hrp.Position).Magnitude
+					for _, c in ipairs(visibleCoins) do
+						local d = (c.Position - hrp.Position).Magnitude
+						if d < dist then
+							closest = c
+							dist = d
+						end
+					end
+					flyToPart(closest)
+				end
 			else
-				hrp.CFrame = hrp.CFrame * CFrame.new(0, -0.05, 0)
 				task.wait(0.05)
 			end
 			task.wait(0.05)
@@ -344,9 +365,6 @@ LocalPlayer.CharacterAdded:Connect(function(char)
 	if farming then
 		startFarm()
 		statusLabel.Text = "Status: AutoFarm resumed"
-	end
-	if antiGravityConn then
-		enableAntiGravity()
 	end
 end)
 
