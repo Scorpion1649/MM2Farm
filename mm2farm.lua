@@ -124,7 +124,7 @@ toggleBtn.MouseButton1Click:Connect(function()
 end)
 
 -- === Fly Speed ===
-local flySpeed = 28
+local flySpeed = 26 -- lowered again by 1
 
 -- === Coin Finder ===
 local function getCoins()
