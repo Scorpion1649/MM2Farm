@@ -123,12 +123,15 @@ end)
 -- === Fly Speed ===
 local flySpeed = 26
 
--- === Coin Finder ===
+-- === Coin Finder (skip MeshPart named exactly "Coin") ===
 local function getCoins()
 	local coins = {}
 	for _, obj in ipairs(workspace:GetDescendants()) do
 		if obj:IsA("BasePart") and obj.Name:lower():find("coin") then
-			table.insert(coins, obj)
+			-- skip if it's a MeshPart named exactly "Coin"
+			if not (obj:IsA("MeshPart") and obj.Name == "Coin") then
+				table.insert(coins, obj)
+			end
 		end
 	end
 	return coins
