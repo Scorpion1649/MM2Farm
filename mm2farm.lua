@@ -1,4 +1,4 @@
---// 🎃 MM2 Halloween AutoFarm💰
+--// ☃️ MM2 Christmas AutoFarm💰
 --// Works on KRNL / Delta (PC + iOS)
 
 --// Services
@@ -49,15 +49,15 @@ gradient.Rotation = 90
 
 local stroke = Instance.new("UIStroke", frame)
 stroke.Thickness = 2
-stroke.Color = Color3.fromRGB(255, 120, 0)
+stroke.Color = Color3.fromRGB(255, 255, 255)
 stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 -- === Title ===
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundTransparency = 1
-title.Text = "🎃 MM2 Halloween AutoFarm💰"
-title.TextColor3 = Color3.fromRGB(255, 145, 0)
+title.Text = "☃️ MM2 Christmas AutoFarm💰"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 
@@ -97,7 +97,7 @@ local statusLabel = Instance.new("TextLabel", frame)
 statusLabel.Size = UDim2.new(1, -12, 0, 18)
 statusLabel.Position = UDim2.new(0, 8, 1, -28)
 statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(200,140,80)
+statusLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
 statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 statusLabel.Text = "Status: Ready"
@@ -107,22 +107,21 @@ local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 140, 0, 42)
 toggleBtn.Position = UDim2.new(0.5, -70, 0.05, 0)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 15)
-toggleBtn.TextColor3 = Color3.fromRGB(255, 145, 0)
-toggleBtn.Text = "🎃 Open AutoFarm"
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Text = "☃️ Open AutoFarm"
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 16
-toggleBtn.Active = true
 toggleBtn.Draggable = true
 toggleBtn.Parent = screenGui
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 10)
 frame.Visible = false
 toggleBtn.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
-	toggleBtn.Text = frame.Visible and "🎃 Close AutoFarm" or "🎃 Open AutoFarm"
+	toggleBtn.Text = frame.Visible and "☃️ Close AutoFarm" or "☃️ Open AutoFarm"
 end)
 
 -- === Fly Speed ===
-local flySpeed = 26 -- kept the same
+local flySpeed = 26
 
 -- === Coin Finder ===
 local function getCoins()
@@ -283,7 +282,7 @@ local function enableESP()
 	espLoop = task.spawn(function()
 		while espEnabled do
 			hue = (hue + 1) % 360
-			local color = Color3.fromHSV(hue/360, 1, 1)
+			local color = Color3.fromHSV(hue/360, 0, 1)
 			for _, h in ipairs(espConnections) do
 				if h.Parent then h.OutlineColor = color end
 			end
